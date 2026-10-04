@@ -1,0 +1,13 @@
+{
+  "name": "bench-adapter",
+  "version": "1.0.0",
+  "description": "OpenAI-compatible HTTP server wrapping Pi agent",
+  "author": "Geoff Ballard <geoffreyballard+gizmos@gmail.com>",
+  "license": "Apache-2.0",
+  "repository": "github:gaballard/gizmos",
+  "bugs": "https://github.com/gaballard/gizmos/issues",
+  "homepage": "https://github.com/gaballard/gizmos#readme",
+  "scripts": {
+    "start": "node server.ts"
+  }
+}

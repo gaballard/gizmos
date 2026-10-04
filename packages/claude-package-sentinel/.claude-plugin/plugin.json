@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "package-sentinel",
+  "version": "1.0.0",
+  "description": "Stops an agent from installing or saving a vulnerable package version - resolves the detected manifest's registry, vets versions against OSV advisories, gates installs (blocks flagged and too-new versions by default, fail-open on unconfirmed), and pins range deps to exact safe versions.",
+  "author": {
+    "name": "Geoff Ballard",
+    "email": "geoffreyballard+gizmos@gmail.com"
+  }
+}

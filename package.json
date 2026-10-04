@@ -1,0 +1,23 @@
+{
+  "name": "gizmos",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Plugins, skills, and utilities for LLM-assisted development workflows",
+  "license": "Apache-2.0",
+  "repository": "github:gaballard/gizmos",
+  "bugs": "https://github.com/gaballard/gizmos/issues",
+  "homepage": "https://github.com/gaballard/gizmos#readme",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "check": "npm run check --workspaces --if-present",
+    "format": "prettier --write \"packages/**/*.ts\""
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@types/node": "24.13.6",
+    "prettier": "3.9.8",
+    "typescript": "7.0.2"
+  }
+}

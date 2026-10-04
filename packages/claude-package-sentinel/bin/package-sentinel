@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+// `package-sentinel` - added to the Bash tool's PATH while the plugin is
+// enabled (plugin/bin/). Delegates to the shared CLI at the plugin root.
+import { main } from '../cli.ts';
+
+process.exitCode = await main(process.argv.slice(2));

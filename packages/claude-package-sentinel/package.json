@@ -1,0 +1,34 @@
+{
+  "name": "@gizmos/claude-package-sentinel",
+  "version": "1.0.0",
+  "description": "Claude Code version of Package Sentinel, a tool that stops agents from installing or saving vulnerable package versions.",
+  "author": "Geoff Ballard <geoffreyballard+gizmos@gmail.com>",
+  "license": "Apache-2.0",
+  "repository": "github:gaballard/gizmos",
+  "bugs": "https://github.com/gaballard/gizmos/issues",
+  "homepage": "https://github.com/gaballard/gizmos#readme",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "files": [
+    ".claude-plugin",
+    "bin",
+    "commands",
+    "hooks",
+    "hooks-handlers",
+    "cli.ts",
+    "shared.ts"
+  ],
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "package-sentinel-core": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "typescript": "7.0.2"
+  }
+}
