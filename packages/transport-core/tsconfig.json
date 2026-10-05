@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["index.ts", "openai.ts", "validate.ts", "test/**/*.ts"],
+  "exclude": []
+}

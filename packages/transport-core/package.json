@@ -1,0 +1,31 @@
+{
+  "name": "@gizmos/transport-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Neutral OpenAI-compatible HTTP transport core: hardened chatComplete + URL validation. Implementation-agnostic; neither quality-check nor sanity-check owns it.",
+  "author": "Geoff Ballard <geoffreyballard+gizmos@gmail.com>",
+  "license": "Apache-2.0",
+  "repository": "github:gaballard/gizmos",
+  "bugs": "https://github.com/gaballard/gizmos/issues",
+  "homepage": "https://github.com/gaballard/gizmos#readme",
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "typescript": "7.0.2"
+  }
+}

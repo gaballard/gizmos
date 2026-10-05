@@ -1,0 +1,36 @@
+{
+  "name": "@gizmos/sanity-check-core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runtime-agnostic core for the sanity-check cross-model reviewer",
+  "author": "Geoff Ballard <geoffreyballard+gizmos@gmail.com>",
+  "license": "Apache-2.0",
+  "repository": "github:gaballard/gizmos",
+  "bugs": "https://github.com/gaballard/gizmos/issues",
+  "homepage": "https://github.com/gaballard/gizmos#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "selfcheck": "node src/self-check.ts",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@gizmos/transport-core": "^1.0.0"
+  }
+}

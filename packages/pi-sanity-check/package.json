@@ -1,0 +1,39 @@
+{
+  "name": "@gizmos/pi-sanity-check",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pi extension for the sanity-check cross-model reviewer",
+  "keywords": [
+    "pi-package"
+  ],
+  "author": "Geoff Ballard <geoffreyballard+gizmos@gmail.com>",
+  "license": "Apache-2.0",
+  "repository": "github:gaballard/gizmos",
+  "bugs": "https://github.com/gaballard/gizmos/issues",
+  "homepage": "https://github.com/gaballard/gizmos#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "index.ts"
+  ],
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@gizmos/sanity-check-core": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "typescript": "7.0.2"
+  }
+}
