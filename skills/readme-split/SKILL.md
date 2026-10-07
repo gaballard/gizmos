@@ -36,7 +36,7 @@ Do not trust the existing README. Verify against source: exports cited by code s
 
 ## Step 5 — Write or merge AGENTS.md
 
-Intro (routing sentence) → design why → module tour (per module: signature block + one short paragraph, including what it deliberately does **not** do) → consumers table → config table with source locations → testing table → invariants. Cross-reference sibling AGENTS.md files, and keep one parity table mirrored in both directions (same rows; each file points at the other's).
+Intro (routing sentence) → design why → module tour (per module: signature block + one short paragraph, including what it deliberately does **not** do) → consumers table → config table with source locations → testing table → invariants. Source locations are **file + symbol name, never line numbers** - they drift on every edit and rot the docs. Cross-reference sibling AGENTS.md files, and keep one parity table mirrored in both directions (same rows; each file points at the other's).
 
 ## Step 6 — Rewrite README.md
 
