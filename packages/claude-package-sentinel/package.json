@@ -1,6 +1,6 @@
 {
   "name": "@gizmos/claude-package-sentinel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Claude Code version of Package Sentinel, a tool that stops agents from installing or saving vulnerable package versions.",
   "author": "Geoff Ballard <geoffreyballard+gizmos@gmail.com>",
   "license": "Apache-2.0",
