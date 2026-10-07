@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "sanity-check",
+  "version": "1.0.0",
+  "description": "Cross-model agree/disagree review loop: an independent reviewer model B critiques a deliverable, producer model A revises until agreement or the round cap (both via an OpenAI-compatible endpoint). Verdict logic lives in the shared sanity-check-core.",
+  "author": {
+    "name": "Geoff Ballard",
+    "email": "geoffreyballard+gizmos@gmail.com"
+  }
+}

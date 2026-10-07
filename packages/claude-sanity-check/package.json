@@ -1,0 +1,25 @@
+{
+  "name": "@gizmos/claude-sanity-check",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Claude Code plugin for the sanity-check cross-model reviewer",
+  "author": "Geoff Ballard <geoffreyballard+gizmos@gmail.com>",
+  "license": "Apache-2.0",
+  "repository": "github:gaballard/gizmos",
+  "bugs": "https://github.com/gaballard/gizmos/issues",
+  "homepage": "https://github.com/gaballard/gizmos#readme",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@gizmos/sanity-check-core": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}
