@@ -25,6 +25,18 @@ export type ChatCompleteOpts = {
   /** Passed through verbatim as the OpenAI `response_format` body field
    *  (e.g. LM Studio json_schema mode). */
   responseFormat?: unknown;
+  /** Conversation id for providers that route by session. Sent as
+   *  `x-opencode-session` when the host is opencode.ai, which 400s with
+   *  MissingSessionID otherwise. Ignored by every other host. */
+  sessionId?: string;
+};
+
+const isOpenCodeHost = (baseURL: string): boolean => {
+  try {
+    return new URL(baseURL).hostname === 'opencode.ai';
+  } catch {
+    return false;
+  }
 };
 
 export const chatComplete = async (opts: ChatCompleteOpts): Promise<string> => {
@@ -36,6 +48,9 @@ export const chatComplete = async (opts: ChatCompleteOpts): Promise<string> => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(opts.sessionId && isOpenCodeHost(url.baseURL)
+        ? { 'x-opencode-session': opts.sessionId }
+        : {}),
       ...(opts.apiKey === undefined ? {} : { Authorization: `Bearer ${opts.apiKey}` }),
     },
     body: JSON.stringify({

@@ -8,17 +8,17 @@ It runs a cross-model agree/disagree review loop (`/sanity-check`) over a delive
 
 B is set up to actually verify rather than imagine: the reviewer's context is injected with the binding-sentinel and agent-personas skills plus the git working-tree state (diff against HEAD and untracked source files), so the review checks claims against the code really on disk.
 
-Sanity Check is also available as a [Claude Code](https://code.claude.com/) plugin at [`claude-sanity-check`](../claude-sanity-check/). The verdict logic is not duplicated - it lives in the shared [`@gizmos/sanity-check-core`](../sanity-check-core/) workspace package.
+Sanity Check is also available as a [Claude Code](https://code.claude.com/) plugin at [`claude-sanity-check`](../claude-sanity-check/).
 
 ## Installation
 
-Install from source (the npm package is planned but not yet published, so the registry form doesn't resolve yet):
+Install from source:
 
 ```bash
 pi install /path/to/gizmos/packages/pi-sanity-check
 ```
 
-_Note: this extension is a wrapper around the verdict logic in [`sanity-check-core`](../sanity-check-core/)._
+_Note: This extension is a wrapper around the verdict logic in [`sanity-check-core`](../sanity-check-core/)._
 
 ## Configuration
 
@@ -40,7 +40,7 @@ Once installed, run `/sanity-check` after A produces a deliverable.
 
 ### Commands
 
-- `/sanity-check <deliverable-path>`: reviews the file. Relative paths resolve against the session cwd (`ctx.cwd`); absolute paths pass through.
+- `/sanity-check <deliverable-path>`: reviews the file. Relative paths resolve against the extension process's cwd; absolute paths pass through.
 - `/sanity-check`: reviews A's most recent assistant output in this session.
 - `/sanity-checker`: shows the current reviewer model B, output budget, and thinking level.
 - `/sanity-checker <model>`: sets and persists reviewer B - bare id (`glm-5.1`), `provider/id` (`ollama-cloud/glm-5.1`), or a `:cloud` suffix (`glm-5.1:cloud`). A === B is refused.
@@ -55,6 +55,8 @@ _Note: every review and revision is a real model call - a full 3-round run is up
 - **A per-round review steer.** Each round posts `[Round N] <provider>/<id>'s review (agree=…, N High / N Medium)` with B's full review, delivered as a steer so the session sees it.
 - **A verdict message.** `Sanity Check - CONVERGED at round N: <reason>` with "Agreement reached.", or `STOPPED at round N (cap 3)` with the directive to surface residual disputes to you rather than claim agreement.
 - **A hollow-approval refusal.** A review that didn't follow the output format, or an `AGREE: yes` with no body, never counts as convergence.
+- **A transport-failure void.** If a review call errors or aborts at the transport/provider layer, that round is voided (`review FAILED (<kind>)`) - never misread as a `0 High / 0 Medium` verdict - and the final report notes the voided-round count.
+- **A producer safeguard.** If A returns a blank or failed revision, the previous deliverable is retained (`retaining previous deliverable`) - B never reviews an empty deliverable.
 - **A cancellation record.** Escaping mid-check surfaces a warning and appends the round, model, and reason to `~/.pi/sanity-check-logs/cancellations.jsonl` - an interrupted run is never silent.
 - **An empty-reply diagnostic.** If B returns an empty review, the full assistant message (stopReason, usage, error) is dumped to `~/.pi/sanity-check-empty.json` with a warning.
 
@@ -69,8 +71,8 @@ _Note: every review and revision is a real model call - a full 3-round run is up
 
 **Does not:**
 
-- Trust a reviewer blindly - format-violating or bodyless approvals are refused by the shared core.
-- Call any network endpoint directly - inference goes through Pi's model registry (`ctx.modelRegistry.complete`), including the revision call, which reuses the session model.
+- Trust a reviewer blindly - format-violating or bodyless approvals are refused by the shared core, and a transport failure is refused as a review (voided, never a false clean pass).
+- Call any network endpoint directly - inference goes through Pi's model registry (`ctx.modelRegistry.complete` / `streamSimple`), including the revision call, which reuses the session model.
 - Persist anything mid-run - a cancelled check leaves no rounds behind; only the cancellation log records that it happened.
 
 ## Latency and cost

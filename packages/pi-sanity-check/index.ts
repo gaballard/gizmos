@@ -104,6 +104,11 @@ const complete = async (
   // not a bare {provider,id}. resolveFullModel throws ModelNotFoundError on a
   // miss so the broken stripped-object path can never silently degrade.
   const target = resolveFullModel(ctx.modelRegistry, model);
+  // opencode/opencode-go 400 with MissingSessionID unless the request carries
+  // `x-opencode-session`. pi-ai derives that header only from
+  // `options.sessionId`, which the agent turn sets for itself - an extension
+  // one-shot completion has to pass it explicitly or the call is unroutable.
+  const sessionId = ctx.sessionManager?.getSessionId?.() as string | undefined;
 
   let res:
     | {
@@ -134,17 +139,20 @@ const complete = async (
     // inside pi - the adapter passes the configured level through untouched.
     res = thinking
       ? await ctx.modelRegistry
-          .streamSimple(
-            target,
-            context,
-            { maxTokens: maxTokensBudget(), temperature: 0, signal: ctx.signal, reasoning: thinking },
-          )
+          .streamSimple(target, context, {
+            maxTokens: maxTokensBudget(),
+            temperature: 0,
+            signal: ctx.signal,
+            sessionId,
+            reasoning: thinking,
+          })
           .result()
-      : await ctx.modelRegistry.complete(
-          target,
-          context,
-          { maxTokens: maxTokensBudget(), temperature: 0, signal: ctx.signal },
-        );
+      : await ctx.modelRegistry.complete(target, context, {
+          maxTokens: maxTokensBudget(),
+          temperature: 0,
+          signal: ctx.signal,
+          sessionId,
+        });
     outcome = classifyCompletion(res ?? {});
   } catch (err) {
     const failure = classifyThrownCompletion(err);

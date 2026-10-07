@@ -79,6 +79,36 @@ test('apiKey adds an Authorization Bearer header; absent apiKey adds none', asyn
   void b;
 });
 
+test('sessionId sends x-opencode-session only to opencode.ai', async () => {
+  await withFetch(
+    () =>
+      chatComplete({
+        baseURL: 'https://opencode.ai/v1',
+        model: 'm',
+        system: 's',
+        user: 'u',
+        sessionId: 'sess_1',
+      }),
+    () => okJson('ok'),
+  );
+  const oc: any = (fetchCalls.at(-1) as any)?.init;
+  assert.equal(oc.headers['x-opencode-session'], 'sess_1');
+
+  await withFetch(
+    () =>
+      chatComplete({
+        baseURL: 'https://example.com',
+        model: 'm',
+        system: 's',
+        user: 'u',
+        sessionId: 'sess_1',
+      }),
+    () => okJson('ok'),
+  );
+  const other: any = (fetchCalls.at(-1) as any)?.init;
+  assert.equal(other.headers['x-opencode-session'], undefined);
+});
+
 test('responseFormat is passed through verbatim; absent means the field is omitted', async () => {
   await withFetch(
     () =>

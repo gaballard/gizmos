@@ -20,6 +20,7 @@ import {
   type CompletionOutcome,
 } from '@gizmos/sanity-check-core';
 import { readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { resolve as resolvePath } from 'node:path';
 
 /**
@@ -45,6 +46,12 @@ const BASE_URL = process.env.SANITY_CHECK_BASE_URL ?? 'http://localhost:1234/v1'
 const PRODUCER_MODEL = process.env.SANITY_CHECK_A_MODEL ?? 'claude-sonnet-4-20250514';
 const REVIEWER_MODEL = process.env.SANITY_CHECK_B_MODEL ?? 'qwen3.8-4b-distill';
 
+/** Conversation id for session-routing providers (opencode/opencode-go require
+ *  `x-opencode-session`). Unlike the pi adapter, this CLI runs outside any host
+ *  session, so it owns one id per run, shared by A and B across every round;
+ *  SANITY_CHECK_SESSION_ID pins it when a conversation must span runs. */
+const SESSION_ID = process.env.SANITY_CHECK_SESSION_ID ?? randomUUID();
+
 /** Output-token budget for review/revise calls: SANITY_CHECK_MAX_TOKENS env >
  *  the 4000 default. (The pi adapter adds a persisted-state tier and a
  *  /sanity-checker flag; the CLI stays env-driven like its other knobs.) */
@@ -66,6 +73,7 @@ const review = async (deliverable: string): Promise<CompletionOutcome> => {
         system: REVIEWER_SYSTEM,
         user: frameDeliverable(deliverable),
         maxTokens: maxTokensBudget(),
+        sessionId: SESSION_ID,
       }),
     };
   } catch (err) {
@@ -84,6 +92,7 @@ const revise = async (deliverable: string, reviewText: string): Promise<Completi
         system: PRODUCER_SYSTEM,
         user: `Original deliverable:\n\n${deliverable}\n\nReviewer's findings:\n\n${reviewText}`,
         maxTokens: maxTokensBudget(),
+        sessionId: SESSION_ID,
       }),
     };
   } catch (err) {
