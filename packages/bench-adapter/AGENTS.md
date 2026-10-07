@@ -8,10 +8,10 @@ Engineering reference for the OpenAI-compatible bench server over pi. The end-us
 
 `server.ts` is the whole module (~330 lines, no `src/`). Boot order matters:
 
-1. **Env defaults** (`/** Config **/`, server.ts:27-34): resolve `PORT`, `LMSTUDIO_BASE_URL`, `BINDING_CHECK_EXT`. `adapterRoot = fileURLToPath(new URL('..', import.meta.url))` resolves to the repo's `packages/` dir (the _parent_ of the package dir), so the default extension path is `<repo>/packages/extensions/binding-check/index.ts` (absent from this workspace - the README tells users to set `BINDING_CHECK_EXT`) and every per-request session runs with `cwd` set there.
-2. **Reviewer wiring** (server.ts:91-95): `TURN_CHECK_PROVIDER ??= 'lmstudio'`; `TURN_CHECK_MODEL` is set to the first live LM Studio model **only when** `~/.pi/binding-check-reviewer.json` does not exist. This runs before `loader.reload()` because the binding-check extension reads the env at module import; an existing persisted `/reviewer` choice is deliberately left unset so the forked extension reuses it.
-3. **Runtime** (server.ts:98-110): `await ModelRuntime.create({ allowModelNetwork: false })`, then the `lmstudio` provider is registered directly on the shared runtime (mirroring the global lmstudio extension) with `models: await lmStudioCatalog()`, followed by `await runtime.refresh(...)`. Registration lands async via refresh - it is awaited before `findModel` is safe.
-4. **Resource loader** (server.ts:113-117): one shared `DefaultResourceLoader` (`cwd: adapterRoot`, `agentDir: ~/.pi/agent`, `additionalExtensionPaths: [BINDING_CHECK_EXT]`), reused by every per-request session.
+1. **Env defaults** (`/** Config **/` block): resolve `PORT`, `LMSTUDIO_BASE_URL`, `BINDING_CHECK_EXT`. `adapterRoot = fileURLToPath(new URL('..', import.meta.url))` resolves to the repo's `packages/` dir (the _parent_ of the package dir), so the default extension path is `<repo>/packages/extensions/binding-check/index.ts` (absent from this workspace - the README tells users to set `BINDING_CHECK_EXT`) and every per-request session runs with `cwd` set there.
+2. **Reviewer wiring** (at boot): `TURN_CHECK_PROVIDER ??= 'lmstudio'`; `TURN_CHECK_MODEL` is set to the first live LM Studio model **only when** `~/.pi/binding-check-reviewer.json` does not exist. This runs before `loader.reload()` because the binding-check extension reads the env at module import; an existing persisted `/reviewer` choice is deliberately left unset so the forked extension reuses it.
+3. **Runtime**: `await ModelRuntime.create({ allowModelNetwork: false })`, then the `lmstudio` provider is registered directly on the shared runtime (mirroring the global lmstudio extension) with `models: await lmStudioCatalog()`, followed by `await runtime.refresh(...)`. Registration lands async via refresh - it is awaited before `findModel` is safe.
+4. **Resource loader**: one shared `DefaultResourceLoader` (`cwd: adapterRoot`, `agentDir: ~/.pi/agent`, `additionalExtensionPaths: [BINDING_CHECK_EXT]`), reused by every per-request session.
 
 ### Module tour
 
@@ -25,11 +25,11 @@ lmStudioModels(): Promise<TModelInfo[]>     // live GET `${LMSTUDIO_BASE_URL}/mo
 lmStudioCatalog(): Promise<pi model[]>      // embed models filtered out; fixed shapes below
 ```
 
-The `FAIL` signal is binding-check's notice entry type `NOTICE_TYPE = 'binding-check-note'`: an entry is a notice iff `entry.type === 'custom' && entry.customType === NOTICE_TYPE` (`isNotice`, server.ts:41-42), with `data: { title?, body? }`.
+The `FAIL` signal is binding-check's notice entry type `NOTICE_TYPE = 'binding-check-note'`: an entry is a notice iff `entry.type === 'custom' && entry.customType === NOTICE_TYPE` (`isNotice`), with `data: { title?, body? }`.
 
-### Verdict resolution (`awaitVerdict`, server.ts:143-161)
+### Verdict resolution (`awaitVerdict`)
 
-`runTurn` (server.ts:187-189) installs the subscription **before** the prompt runs: `const turn = awaitVerdict(session)` - the promise's executor subscribes synchronously - then `await session.prompt(userText)`, then `const turnResult = await turn`. First resolution wins (`isDone` guard; unsubscribes and clears the pending timer):
+`runTurn` installs the subscription **before** the prompt runs: `const turn = awaitVerdict(session)` - the promise's executor subscribes synchronously - then `await session.prompt(userText)`, then `const turnResult = await turn`. First resolution wins (`isDone` guard; unsubscribes and clears the pending timer):
 
 1. `entry_appended` carrying a `binding-check-note` entry → `{ verdict: 'FAIL', finding: notice body ?? title }` immediately - short-circuits everything else, including the still-running turn (which continues solely to collect the reply `content`).
 2. `agent_settled` → `{ verdict: 'PASS' }` **1200 ms** later (grace window: gives the extension time to persist a late notice; it fires only after a run completes, SDK `core/agent-session.js`).
@@ -84,19 +84,19 @@ The root README lists this package among the private dev tools (`"private": true
 
 ## Configuration (source locations)
 
-| Knob                           | Default / behavior                                                                                                                                                              | Location        |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| `PORT`                         | `8787`                                                                                                                                                                          | server.ts:27    |
-| `LMSTUDIO_BASE_URL`            | `http://127.0.0.1:10103/v1` (model source)                                                                                                                                      | server.ts:29    |
-| `BINDING_CHECK_EXT`            | `<repo>/packages/extensions/binding-check/index.ts` - via `adapterRoot` = the `packages/` dir, **not** the package dir                                                          | server.ts:32-34 |
-| `TURN_CHECK_PROVIDER`          | `??=` `'lmstudio'` (only when unset in the environment)                                                                                                                         | server.ts:91    |
-| `TURN_CHECK_MODEL`             | First live LM Studio model (first row of `/models` - order not guaranteed) - set **only** when `~/.pi/binding-check-reviewer.json` is absent; otherwise deliberately left unset | server.ts:91-95 |
-| Reviewer state path            | `STATE_PATH = ${HOME}/.pi/binding-check-reviewer.json` (persisted `/reviewer` choice wins)                                                                                      | server.ts:92    |
-| Verdict grace window           | `1200` ms after `agent_settled` → PASS                                                                                                                                          | server.ts:156   |
-| Verdict hard timeout           | `12_000` ms → force PASS                                                                                                                                                        | server.ts:153   |
-| LM Studio probe timeout        | `AbortSignal.timeout(4000)` - unreachable/`!ok` → `[]` (catalog heals on refresh)                                                                                               | server.ts:57    |
-| Notice type                    | `NOTICE_TYPE = 'binding-check-note'` (binding-check's FAIL signal)                                                                                                              | server.ts:39    |
-| Injected model shape constants | `contextWindow: 32000`, `maxTokens: 8192`, zero cost, text-only input                                                                                                           | server.ts:68-89 |
+| Knob                           | Default / behavior                                                                                                                                                              | Location                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `PORT`                         | `8787`                                                                                                                                                                          | Config block                 |
+| `LMSTUDIO_BASE_URL`            | `http://127.0.0.1:10103/v1` (model source)                                                                                                                                      | Config block                 |
+| `BINDING_CHECK_EXT`            | `<repo>/packages/extensions/binding-check/index.ts` - via `adapterRoot` = the `packages/` dir, **not** the package dir                                                          | Config block (`adapterRoot`) |
+| `TURN_CHECK_PROVIDER`          | `??=` `'lmstudio'` (only when unset in the environment)                                                                                                                         | boot: reviewer wiring        |
+| `TURN_CHECK_MODEL`             | First live LM Studio model (first row of `/models` - order not guaranteed) - set **only** when `~/.pi/binding-check-reviewer.json` is absent; otherwise deliberately left unset | boot: reviewer wiring        |
+| Reviewer state path            | `STATE_PATH = ${HOME}/.pi/binding-check-reviewer.json` (persisted `/reviewer` choice wins)                                                                                      | `STATE_PATH`                 |
+| Verdict grace window           | `1200` ms after `agent_settled` → PASS                                                                                                                                          | `awaitVerdict`               |
+| Verdict hard timeout           | `12_000` ms → force PASS                                                                                                                                                        | `awaitVerdict`               |
+| LM Studio probe timeout        | `AbortSignal.timeout(4000)` - unreachable/`!ok` → `[]` (catalog heals on refresh)                                                                                               | `lmStudioModels`             |
+| Notice type                    | `NOTICE_TYPE = 'binding-check-note'` (binding-check's FAIL signal)                                                                                                              | `NOTICE_TYPE`                |
+| Injected model shape constants | `contextWindow: 32000`, `maxTokens: 8192`, zero cost, text-only input                                                                                                           | `lmStudioCatalog`            |
 
 ## Testing & validation
 
