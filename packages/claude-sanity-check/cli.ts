@@ -20,6 +20,7 @@ import {
   type CompletionOutcome,
 } from '@gizmos/sanity-check-core';
 import { readFileSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
 
 /**
  * `sanity-check` CLI - the Claude Code counterpart of the pi extension's
@@ -106,11 +107,19 @@ export const main = async (args: string[]): Promise<number> => {
     return 2;
   }
 
+  // Relative paths anchor to the CLI's process cwd (the directory Claude runs
+  // the command in); absolute args pass through path.resolve unchanged.
+  const resolved = resolvePath(process.cwd(), pathArg);
   let deliverable: string;
   try {
-    deliverable = readFileSync(pathArg, 'utf8');
+    deliverable = readFileSync(resolved, 'utf8');
   } catch (err) {
-    console.error('Cannot read deliverable: %s: %s', pathArg, (err as Error).message);
+    console.error(
+      'Cannot read deliverable: %s: %s (tried %s)',
+      pathArg,
+      (err as Error).message,
+      resolved,
+    );
     return 2;
   }
   if (!deliverable.trim()) {
@@ -125,7 +134,7 @@ export const main = async (args: string[]): Promise<number> => {
     );
   }
   console.log(
-    `Sanity Check: producer A=${PRODUCER_MODEL}  reviewer B=${REVIEWER_MODEL}  (${MAX_ROUNDS} rounds max)`,
+    `Sanity Check: producer A=${PRODUCER_MODEL}  reviewer B=${REVIEWER_MODEL}  (${MAX_ROUNDS} rounds max)  Deliverable: ${resolved}`,
   );
 
   let current = deliverable;
