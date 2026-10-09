@@ -11,6 +11,12 @@
       "source": "./packages/claude-package-sentinel",
       "version": "1.0.1",
       "description": "Stops an agent from installing or saving a vulnerable package version (OSV + registry vetting; blocks flagged and too-new versions by default, fail-open on unconfirmed)."
+    },
+    {
+      "name": "sanity-check",
+      "source": "./packages/claude-sanity-check",
+      "version": "1.0.0",
+      "description": "Cross-model agree/disagree review loop: an independent reviewer model B critiques a deliverable, producer model A revises until agreement or the round cap (both via an OpenAI-compatible endpoint)."
     }
   ]
 }

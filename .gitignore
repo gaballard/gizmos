@@ -4,4 +4,5 @@ graph.db
 *.tsbuildinfo
 .claude/
 measure/
+measure
 docs/
